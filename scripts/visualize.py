@@ -5,28 +5,31 @@ import torch
 import torchvision
 import segmentation_models_pytorch as smp
 
-import datasets
-import transforms
-import metrics
+
+from segmentation.data import dataset, transforms
+from segmentation.utils import metrics
 
 
 class Module:
     def __init__(self, model_path, num_classes=5):
 
-        device = device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        backbone = 'efficientnet-b0'  # 'efficientnet-b0'
+        device = device = "cuda" if torch.cuda.is_available() else "cpu"
+        backbone = "efficientnet-b0"  # 'efficientnet-b0'
         net = smp.Unet(backbone, classes=num_classes)
 
         checkpoint = torch.load(model_path)
-        net.load_state_dict(checkpoint['model'])
+        net.load_state_dict(checkpoint)
         net = net.to(device)
         net = net.eval()
 
-        T_Compose = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225])])
+        T_Compose = torchvision.transforms.Compose(
+            [
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
         self.device = device
         self.net = net
@@ -57,29 +60,29 @@ def get_maximum_entropy(n):
 def visualze_video(
     model_path,
     num_classes=5,
-    video_path='./videos/test.mp4',
-    save_path='./videos/segmentation.mp4',
+    video_path="./videos/test.mp4",
+    save_path="./videos/segmentation.mp4",
     size=(1024, 576),
 ):
     print(model_path)
     module = Module(model_path, num_classes)
 
     video = videocv.Video(video_path)
-    writer = videocv.Writer(save_path, video.fps, (size[0]*2, size[1]*2))
+    writer = videocv.Writer(save_path, video.fps, (size[0] * 2, size[1] * 2))
 
     me = get_maximum_entropy(num_classes)
 
     idx = 0
     while video():
         idx += 1
-        print('%d / %d' % (idx, video.frame_count))
+        print("%d / %d" % (idx, video.frame_count))
 
         image = cv2.resize(video.frame, size, interpolation=cv2.INTER_AREA)
         x = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         y, entropy = module(x)
 
-        mask = datasets.Comma10k.get_color(y)
+        mask = dataset.Comma10k.get_color(y)
         mask = cv2.cvtColor(mask, cv2.COLOR_RGB2BGR)
 
         edge = cv2.Laplacian(y.astype(np.uint8), -1)
@@ -99,25 +102,21 @@ def visualze_video(
         view = np.concatenate([view_top, view_bot])
         writer(view)
 
-        cv2.imshow('view', view)
+        cv2.imshow("view", view)
         key = cv2.waitKey(1)
         if key == 27:
             break
 
 
 def visualize_eval(
-    data_root='./data/comma10k',
-    model_path='./logs/comma10k/test2/models/model_050.pth',
+    data_root="./data/comma10k",
+    model_path="./logs/comma10k/test2/models/model_050.pth",
     size=(640, 480),
 ):
 
     module = Module(model_path)
 
-    dataset = datasets.Comma10k(
-        data_root,
-        'val',
-        transforms.Resize(size)
-    )
+    dataset = dataset.Comma10k(data_root, "val", transforms.Resize(size))
 
     idx = 0
     while True:
@@ -130,15 +129,16 @@ def visualize_eval(
         pred = cv2.cvtColor(dataset.get_color(y), cv2.COLOR_RGB2BGR)
 
         results = metrics.calculate_results(label, y, 5)
-        print('%8s %8s %8s %8s %8s' %
-              ('class', 'mask', 'pred', 'inter', 'union'))
+        print("%8s %8s %8s %8s %8s" % ("class", "mask", "pred", "inter", "union"))
         for c, r in enumerate(results):
-            print('%8d %8d %8d %8d %8d' %
-                  (c, r['mask'], r['pred'], r['inter'], r['union']))
+            print(
+                "%8d %8d %8d %8d %8d"
+                % (c, r["mask"], r["pred"], r["inter"], r["union"])
+            )
         print()
 
-        #error = np.zeros(image.shape, np.uint8)
-        #error[y != label] = (0, 255, 255)
+        # error = np.zeros(image.shape, np.uint8)
+        # error[y != label] = (0, 255, 255)
 
         error = mask.copy()
         error[y == label] = 0
@@ -147,26 +147,26 @@ def visualize_eval(
         view_bot = np.concatenate([mask, pred], axis=1)
         view = np.concatenate([view_top, view_bot])
 
-        cv2.imshow('view', view)
+        cv2.imshow("view", view)
 
         key = cv2.waitKey(0)
         if key == 27:
             break
-        elif key == ord('q'):
+        elif key == ord("q"):
             idx -= 1
         else:
             idx += 1
 
         if idx < 0:
-            idx = len(dataset)-1
+            idx = len(dataset) - 1
         elif idx >= len(dataset):
             idx = 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     visualze_video(
-        model_path='./logs/comma10k/models/220902.pt',
-        video_path='D:/videos/test.mp4',
-        save_path='D:/videos/segmentation.mp4',
+        model_path="./logs/comma10k/models/220902.pt",
+        video_path="D:/videos/test.mp4",
+        save_path="D:/videos/segmentation.mp4",
     )
     # visualize_eval()

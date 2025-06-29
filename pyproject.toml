@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "segmentation"
+version = "0.1.0"
+description = "PyTorch implementation of semantic segmentation models on Comma10k"
+dependencies = [
+    "numpy",
+    "pillow",
+    "opencv-python",
+    "torch",
+    "torchvision",
+    "segmentation-models-pytorch",
+    "gdown",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["segmentation*"]
+
+[project.optional-dependencies]
+dev = ["pytest"]

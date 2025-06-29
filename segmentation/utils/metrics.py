@@ -16,10 +16,10 @@ def calculate_results(mask, pred, num_classes):
         inter = np.sum(true_mask_c)
         union = area_mask + area_pred - inter
 
-        result['mask'] = area_mask
-        result['pred'] = area_pred
-        result['inter'] = inter
-        result['union'] = union
+        result["mask"] = area_mask
+        result["pred"] = area_pred
+        result["inter"] = inter
+        result["union"] = union
 
         results.append(result)
 
