@@ -122,11 +122,3 @@ def evaluate(
 
     print(f"\nValidation Loss: {avg_loss:.4f}\n")
     print_metrics(metrics)
-
-
-if __name__ == "__main__":
-    evaluate(
-        data_root="../../dataset/comma10k",
-        model_path="./checkpoints/latest.model.pth",
-        size=(1280, 960),
-    )
