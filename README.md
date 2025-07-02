@@ -6,6 +6,7 @@ This is a PyTorch implementation of semantic segmentation models on [Comma10k](h
 | ------ | --------------- | -------------- | ------------------------------------ |
 | 220622 | 89.38           | 89.05          | [Link](https://youtu.be/-xZ5Vsq1JDg) |
 | 220902 | 88.39           | 89.79          | [Link](https://youtu.be/l2cX6F_69wI) |
+| 250703 | 90.49           | 90.91          | -                                    |
 
 ## Cityscapes
 | Date   | miou (2048x1024) | miou (1024x512) | miou (512x256) | video                                |
@@ -28,7 +29,6 @@ T_train = transforms.Compose(
         transforms.RandomResizedCrop(size=(640, 640), scale=(0.5, 1.0)),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
 dataset = Comma10k("/path/to/dataset/", split="train", transform=T_train)
